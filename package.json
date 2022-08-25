@@ -1,0 +1,17 @@
+{
+  "name": "oidc_provider_oauth2",
+  "version": "1.0.0",
+  "description": "Oauth2 server using OIDC Provider Node.Js library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1",
+    "nodemon": "^2.0.19",
+    "oidc-provider": "^7.11.5"
+  }
+}
