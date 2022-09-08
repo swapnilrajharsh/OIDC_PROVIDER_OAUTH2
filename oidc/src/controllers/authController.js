@@ -4,6 +4,8 @@ const path = require('path')
 
 module.exports = function(oidc) {
     const module = {}
+
+    // Interaction Controller
     module.interaction = async (req, res)=>{
         const { uid, prompt, params, session } = await oidc.interactionDetails(req, res)
         
@@ -45,6 +47,7 @@ module.exports = function(oidc) {
 		  .join("<br>");
 	  }
 
+  //Login Interaction Controller
 	module.login = async(req, res)=> {
 		const { prompt: { name },} = await oidc.interactionDetails(req, res)
 		  if (name === "login") {
@@ -67,6 +70,61 @@ module.exports = function(oidc) {
 			});
 		  }
 	}
+
+  //Abort Interaction Controller
+  module.abortInteraction = async(req, res)=> {
+    
+    const result = {
+      error: "access_denied",
+      error_description: "End-User aborted interaction",
+    }
+
+    await oidc.interactionFinished(req, res, result, {
+      mergeWithLastSubmission: false,})
+  }
+
+  //Confirm Interaction Controller
+  module.confirmInteraction = async(req, res)=>{
+    const interactionDetails = await oidc.interactionDetails(req, res);
+    const {
+      prompt: { name, details },
+      params,
+      session: { accountId },
+    } = interactionDetails
+
+    if (name === "consent") {
+      const grant = interactionDetails.grantId
+        ? await oidc.Grant.find(interactionDetails.grantId)
+        : new oidc.Grant({
+            accountId,
+            clientId: params.client_id
+          });
+
+      if (grant) {
+        if (details.missingOIDCScope) {
+          grant.addOIDCScope(details.missingOIDCScope.join(" "));
+        }
+        if (details.missingOIDCClaims) {
+          grant.addOIDCClaims(details.missingOIDCClaims);
+        }
+        if (details.missingResourceScopes) {
+          for (const [indicator, scopes] of Object.entries(
+            details.missingResourceScopes
+          )) {
+            grant.addResourceScope(indicator, (scopes).join(" "))
+          }
+        }
+
+        const grantId = await grant.save()
+
+        const result = { consent: { grantId } };
+        await oidc.interactionFinished(req, res, result, {
+          mergeWithLastSubmission: true,})
+      }
+    } else {
+      res.throw(400, "Interaction prompt type must be `consent`.");
+    }
+  }
 
     return module
 }
