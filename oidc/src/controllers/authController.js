@@ -126,5 +126,21 @@ module.exports = function(oidc) {
     }
   }
 
-    return module
+  module.register = async(req, res, next) => {
+    const body = req.body
+    try {
+      await accountService.set(body.username, {
+        username: body.username,
+        password: body.password,
+      })
+      res.status(201).json({
+        success : true
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  return module
+  
 }
