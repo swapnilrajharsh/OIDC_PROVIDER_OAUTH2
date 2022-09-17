@@ -7,6 +7,8 @@ const morgan = require('morgan')
 const authRouter = require('./routes/authRouter')
 const { connectMongodb } = require('./db/mongodb/connection')
 
+var bodyParser = require('body-parser')
+
 dotenv.config({ path: path.resolve("oidc/.env") });
 
 const start = async() => {
@@ -25,6 +27,7 @@ const start = async() => {
   const provider = oidc( process.env.ISSUER, { ...configuration} )
 
   authRouter(app, provider)
+
   app.use('/', provider.callback())
 
   app.listen(3000, () => {

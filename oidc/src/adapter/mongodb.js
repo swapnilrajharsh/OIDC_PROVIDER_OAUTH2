@@ -43,6 +43,7 @@ class MongoAdapter {
       key: id,
       "payload.kind": this.model,
     });
+    if(!doc) return undefined
     return doc.payload;
   }
 
